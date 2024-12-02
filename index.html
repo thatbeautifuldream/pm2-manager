@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PM2 Management Console</title>
+  </head>
+  <body>
+    <h1>PM2 Process Manager</h1>
+    <button onclick="listProcesses()">List Processes</button>
+    <div id="processList"></div>
+
+    <input type="text" id="processName" placeholder="Enter Process Name" />
+    <button onclick="manageProcess('start')">Start Process</button>
+    <button onclick="manageProcess('stop')">Stop Process</button>
+    <button onclick="manageProcess('restart')">Restart Process</button>
+    <button onclick="manageProcess('delete')">Delete Process</button>
+    <button onclick="manageProcess('reload')">Reload Process</button>
+
+    <script>
+      function listProcesses() {
+        fetch("/pm2/list")
+          .then((response) => response.json())
+          .then((data) => {
+            const processList = document.getElementById("processList");
+            let html =
+              "<table><tr><th>PID</th><th>Name</th><th>Status</th><th>Memory</th><th>CPU</th></tr>";
+            data.forEach((proc) => {
+              html += `<tr>
+                        <td>${proc.pid}</td>
+                        <td>${proc.name}</td>
+                        <td>${proc.pm2_env.status}</td>
+                        <td>${(proc.monit.memory / 1024 / 1024).toFixed(
+                          2
+                        )} MB</td>
+                        <td>${proc.monit.cpu} %</td>
+                      </tr>`;
+            });
+            html += "</table>";
+            processList.innerHTML = html;
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function manageProcess(action) {
+        const name = document.getElementById("processName").value;
+        if (!name) {
+          alert("Please enter a process name.");
+          return;
+        }
+        fetch(`/pm2/${action}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            alert(JSON.stringify(data));
+            listProcesses(); // Refresh the list after an action
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+    </script>
+  </body>
+</html>
