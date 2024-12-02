@@ -6,7 +6,7 @@ const path = require("path");
 
 // Express App for API
 const app = express();
-const apiPort = process.env.PORT || 3002;
+const apiPort = process.env.PORT || 3000;
 app.use(bodyParser.json());
 
 // PM2 Helper function
